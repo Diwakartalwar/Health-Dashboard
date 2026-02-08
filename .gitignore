@@ -29,7 +29,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+.env/
 .vscode/
 .idea/
 *.swp
