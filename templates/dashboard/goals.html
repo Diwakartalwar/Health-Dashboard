@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}Health Goals - Health Forecast{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-0">
+                <i class="fas fa-bullseye"></i> Health Goals
+            </h2>
+        </div>
+    </div>
+
+    <!-- Goal Summary Cards -->
+    <div class="row mb-4">
+        {% for goal in goals %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ goal.name }}</h6>
+                    {% if goal.is_goal_achieved %}
+                        <span class="badge bg-success">Achieved!</span>
+                    {% else %}
+                        <span class="badge bg-warning">In Progress</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Progress</span>
+                            <strong>{{ goal.progress_percentage|floatformat:1 }}%</strong>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar {% if goal.is_goal_achieved %}bg-success{% else %}bg-primary{% endif %}" 
+                                 style="width: {{ goal.progress_percentage }}%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <small class="text-muted">Current</small>
+                            <div class="fw-bold">{{ goal.value }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Target</small>
+                            <div class="fw-bold">{{ goal.target_value }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if goal.goal_date %}
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> Target: {{ goal.goal_date }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-bullseye fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Goals Set Yet</h5>
+                    <p class="text-muted">Start tracking your health goals by adding metrics with targets below.</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add New Goal -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-plus"></i> Set New Goal
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'health_metrics:add_health_metric' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="{{ form.metric_type.id_for_label }}" class="form-label">Metric Type</label>
+                                {{ form.metric_type }}
+                            </div>
+                            <div class="col-md-2">
+                                <label for="{{ form.value.id_for_label }}" class="form-label">Current Value</label>
+                                {{ form.value }}
+                            </div>
+                            <div class="col-md-2">
+                                <label for="{{ form.target_value.id_for_label }}" class="form-label">Goal Target</label>
+                                {{ form.target_value }}
+                            </div>
+                            <div class="col-md-2">
+                                <label for="{{ form.goal_date.id_for_label }}" class="form-label">Goal Date</label>
+                                {{ form.goal_date }}
+                            </div>
+                            <div class="col-md-2">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                                {{ form.date }}
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-8">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                                {{ form.notes }}
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-save"></i> Save Goal
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Metrics with Goals -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-list"></i> Recent Metrics with Goals
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Metric</th>
+                                    <th>Current Value</th>
+                                    <th>Goal Target</th>
+                                    <th>Progress</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for metric in recent_metrics %}
+                                <tr>
+                                    <td>{{ metric.date }}</td>
+                                    <td>{{ metric.get_metric_type_display }}</td>
+                                    <td>{{ metric.value }}</td>
+                                    <td>
+                                        {% if metric.target_value %}
+                                            {{ metric.target_value }}
+                                        {% else %}
+                                            <span class="text-muted">No goal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if metric.target_value %}
+                                            <div class="progress" style="height: 20px; width: 100px;">
+                                                <div class="progress-bar {% if metric.is_goal_achieved %}bg-success{% else %}bg-primary{% endif %}" 
+                                                     style="width: {{ metric.progress_percentage }}%;"></div>
+                                            </div>
+                                            <small>{{ metric.progress_percentage|floatformat:1 }}%</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if metric.is_goal_achieved %}
+                                            <span class="badge bg-success">Achieved</span>
+                                        {% elif metric.target_value %}
+                                            <span class="badge bg-warning">In Progress</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No Goal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">
+                                        No metrics recorded yet. Start by adding your health data above.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-download"></i> Export Data
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'dashboard:export_data' %}?type=blood" class="btn btn-outline-danger w-100 mb-2">
+                                <i class="fas fa-file-csv"></i> Export Blood Reports
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'dashboard:export_data' %}?type=vitals" class="btn btn-outline-success w-100 mb-2">
+                                <i class="fas fa-file-csv"></i> Export Vital Signs
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'dashboard:export_data' %}?type=all" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-file-csv"></i> Export All Data
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'dashboard:analytics' %}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="fas fa-chart-line"></i> View Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

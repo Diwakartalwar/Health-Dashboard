@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Vital Signs - Health Forecast{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h3><i class="fas fa-heart-pulse"></i> Vital Signs</h3>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'health_metrics:add_vital_signs' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add Vital Signs
+            </a>
+        </div>
+    </div>
+
+    {% if vital_signs %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Blood Pressure</th>
+                    <th>Heart Rate</th>
+                    <th>Temperature</th>
+                    <th>O₂ Saturation</th>
+                    <th>Respiratory Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vital in vital_signs %}
+                <tr>
+                    <td>{{ vital.date }} {{ vital.time }}</td>
+                    <td>{{ vital.systolic_bp|default:"—" }}/{{ vital.diastolic_bp|default:"—" }} mmHg</td>
+                    <td>{{ vital.heart_rate_bpm|default:"—" }} bpm</td>
+                    <td>{{ vital.temperature_celsius|default:"—" }}°C</td>
+                    <td>{{ vital.oxygen_saturation|default:"—" }}%</td>
+                    <td>{{ vital.respiratory_rate|default:"—" }} bpm</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-3"><i class="fas fa-inbox" style="font-size: 3rem;"></i></p>
+            <p class="text-muted mb-3">No vital signs recorded yet</p>
+            <a href="{% url 'health_metrics:add_vital_signs' %}" class="btn btn-success">Record Your First Vital Signs</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

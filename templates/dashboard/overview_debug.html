@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Debug - Health Forecast{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-0">
+                <i class="fas fa-chart-line"></i> Health Dashboard (DEBUG)
+            </h2>
+        </div>
+    </div>
+
+    <!-- DEBUG INFO -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">DEBUG INFORMATION</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>User:</strong> {{ user.username }}</p>
+                    <p><strong>AI Ready:</strong> {{ ai_ready }}</p>
+                    <p><strong>Recommendations:</strong> {{ recommendations }}</p>
+                    <p><strong>Recommendations Type:</strong> {% if recommendations %}List with {{ recommendations|length }} items{% else %}None/Empty{% endif %}</p>
+                    <p><strong>Forecast Score:</strong> {{ forecast.health_score }}</p>
+                    
+                    {% if recommendations %}
+                        <div class="alert alert-success">
+                            ✓ RECOMMENDATIONS SHOULD BE VISIBLE BELOW
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            ✗ NO RECOMMENDATIONS FOUND
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations (Original) -->
+    {% if recommendations %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Health Recommendations
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for recommendation in recommendations %}
+                    <div class="recommendation">
+                        <p class="mb-0">{{ recommendation }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Manual Recommendations Display -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bug"></i> Manual Recommendations Display (Always Visible)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for recommendation in recommendations %}
+                    <div class="alert alert-warning">
+                        <strong>Recommendation {{ forloop.counter }}:</strong> {{ recommendation }}
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-secondary">
+                        No recommendations found in the list.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

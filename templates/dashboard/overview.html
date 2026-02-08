@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Health Forecast{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-0">
+                <i class="fas fa-chart-line"></i> Health Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <!-- Health Score and Risk Assessment -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-center p-4">
+                    <p class="card-text mb-2">Overall Health Score</p>
+                    <div class="health-score">{{ forecast.health_score|floatformat:0 }}/100</div>
+                    <p class="card-text small mt-2">
+                        {% if forecast.health_score >= 70 %}
+                        <i class="fas fa-check-circle"></i> Excellent
+                        {% elif forecast.health_score >= 50 %}
+                        <i class="fas fa-exclamation-circle"></i> Good
+                        {% else %}
+                        <i class="fas fa-times-circle"></i> Needs Attention
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-heart"></i> Cardiovascular Risk
+                    </h6>
+                    <p class="mb-2">
+                        <span class="metric-badge risk-{{ forecast.cardiovascular_risk }}">
+                            {{ forecast.get_cardiovascular_risk_display|upper }}
+                        </span>
+                    </p>
+                    <small class="text-muted">Based on blood pressure and cholesterol levels</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-droplet"></i> Diabetes Risk
+                    </h6>
+                    <p class="mb-2">
+                        <span class="metric-badge risk-{{ forecast.diabetes_risk }}">
+                            {{ forecast.get_diabetes_risk_display|upper }}
+                        </span>
+                    </p>
+                    <small class="text-muted">Based on glucose levels and BMI</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Metrics -->
+    <div class="row mb-4">
+        {% if latest_blood %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-vial"></i> Latest Blood Report
+                        <small class="float-end">{{ latest_blood.date }}</small>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if latest_blood.glucose_mg_dl %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">Glucose</small>
+                            <p class="mb-0"><strong>{{ latest_blood.glucose_mg_dl }} mg/dL</strong></p>
+                        </div>
+                        {% endif %}
+                        {% if latest_blood.total_cholesterol_mg_dl %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">Total Cholesterol</small>
+                            <p class="mb-0"><strong>{{ latest_blood.total_cholesterol_mg_dl }} mg/dL</strong></p>
+                        </div>
+                        {% endif %}
+                        {% if latest_blood.hdl_cholesterol_mg_dl %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">HDL Cholesterol</small>
+                            <p class="mb-0"><strong>{{ latest_blood.hdl_cholesterol_mg_dl }} mg/dL</strong></p>
+                        </div>
+                        {% endif %}
+                        {% if latest_blood.ldl_cholesterol_mg_dl %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">LDL Cholesterol</small>
+                            <p class="mb-0"><strong>{{ latest_blood.ldl_cholesterol_mg_dl }} mg/dL</strong></p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'health_metrics:blood_report_list' %}" class="btn btn-sm btn-outline-primary mt-2">View All Reports</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <p class="text-muted mb-3"><i class="fas fa-inbox" style="font-size: 2rem;"></i></p>
+                    <p class="text-muted">No blood reports yet</p>
+                    <a href="{% url 'health_metrics:add_blood_report' %}" class="btn btn-primary btn-sm">Add Blood Report</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if latest_vitals %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-heart-pulse"></i> Latest Vital Signs
+                        <small class="float-end">{{ latest_vitals.date }} {{ latest_vitals.time }}</small>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if latest_vitals.systolic_bp %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">Blood Pressure</small>
+                            <p class="mb-0"><strong>{{ latest_vitals.systolic_bp }}/{{ latest_vitals.diastolic_bp }} mmHg</strong></p>
+                        </div>
+                        {% endif %}
+                        {% if latest_vitals.heart_rate_bpm %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">Heart Rate</small>
+                            <p class="mb-0"><strong>{{ latest_vitals.heart_rate_bpm }} bpm</strong></p>
+                        </div>
+                        {% endif %}
+                        {% if latest_vitals.temperature_celsius %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">Temperature</small>
+                            <p class="mb-0"><strong>{{ latest_vitals.temperature_celsius }}°C</strong></p>
+                        </div>
+                        {% endif %}
+                        {% if latest_vitals.oxygen_saturation %}
+                        <div class="col-sm-6 mb-3">
+                            <small class="text-muted">Oxygen Saturation</small>
+                            <p class="mb-0"><strong>{{ latest_vitals.oxygen_saturation }}%</strong></p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'health_metrics:vital_signs_list' %}" class="btn btn-sm btn-outline-success mt-2">View All Vitals</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <p class="text-muted mb-3"><i class="fas fa-inbox" style="font-size: 2rem;"></i></p>
+                    <p class="text-muted">No vital signs recorded yet</p>
+                    <a href="{% url 'health_metrics:add_vital_signs' %}" class="btn btn-success btn-sm">Add Vital Signs</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recommendations -->
+    {% if recommendations %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Health Recommendations
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for recommendation in recommendations %}
+                    <div class="recommendation">
+                        <p class="mb-0">{{ recommendation }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h5 class="mb-3">Quick Actions</h5>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'health_metrics:add_blood_report' %}" class="btn btn-outline-primary w-100 mb-2">
+                <i class="fas fa-vial"></i> Add Blood Report
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'health_metrics:add_vital_signs' %}" class="btn btn-outline-success w-100 mb-2">
+                <i class="fas fa-heart-pulse"></i> Add Vital Signs
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'health_metrics:add_health_metric' %}" class="btn btn-outline-info w-100 mb-2">
+                <i class="fas fa-chart-bar"></i> Add Health Metric
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary w-100 mb-2">
+                <i class="fas fa-user"></i> Update Profile
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

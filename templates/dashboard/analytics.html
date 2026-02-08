@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+
+{% block title %}Health Analytics - Health Forecast{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-0">
+                <i class="fas fa-chart-line"></i> Health Analytics
+            </h2>
+        </div>
+    </div>
+
+    <!-- Chart Controls -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="dateRange" class="form-label">Date Range</label>
+                            <select id="dateRange" class="form-select">
+                                <option value="7">Last 7 Days</option>
+                                <option value="30" selected>Last 30 Days</option>
+                                <option value="90">Last 3 Months</option>
+                                <option value="365">Last Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="chartType" class="form-label">Chart Type</label>
+                            <select id="chartType" class="form-select">
+                                <option value="line">Line Chart</option>
+                                <option value="bar">Bar Chart</option>
+                                <option value="scatter">Scatter Plot</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="metricType" class="form-label">Metric Type</label>
+                            <select id="metricType" class="form-select">
+                                <option value="blood">Blood Metrics</option>
+                                <option value="vitals">Vital Signs</option>
+                                <option value="weight">Weight</option>
+                                <option value="sleep">Sleep</option>
+                                <option value="exercise">Exercise</option>
+                                <option value="stress">Stress</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button id="refreshCharts" class="btn btn-primary w-100">
+                                <i class="fas fa-sync-alt"></i> Refresh Charts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-area"></i> Health Trends
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="mainChart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-pie"></i> Health Score Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="scoreChart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Correlation Matrix -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-project-diagram"></i> Health Correlations
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="correlationChart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Progress -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bullseye"></i> Goal Progress
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="goalChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced Chart JavaScript
+let mainChart, scoreChart, correlationChart, goalChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadCharts();
+    
+    // Event listeners
+    document.getElementById('refreshCharts').addEventListener('click', loadCharts);
+    document.getElementById('dateRange').addEventListener('change', loadCharts);
+    document.getElementById('chartType').addEventListener('change', updateMainChart);
+    document.getElementById('metricType').addEventListener('change', loadCharts);
+});
+
+function initializeCharts() {
+    // Initialize empty charts
+    mainChart = Plotly.newPlot('mainChart', [], {
+        title: 'Loading...',
+        responsive: true
+    });
+    
+    scoreChart = Plotly.newPlot('scoreChart', [], {
+        title: 'Health Score Distribution',
+        responsive: true
+    });
+    
+    correlationChart = Plotly.newPlot('correlationChart', [], {
+        title: 'Health Metric Correlations',
+        responsive: true
+    });
+    
+    goalChart = Plotly.newPlot('goalChart', [], {
+        title: 'Goal Progress',
+        responsive: true
+    });
+}
+
+async function loadCharts() {
+    const dateRange = document.getElementById('dateRange').value;
+    const metricType = document.getElementById('metricType').value;
+    
+    try {
+        // Load main trend data
+        await loadMainChart(dateRange, metricType);
+        
+        // Load health score distribution
+        await loadScoreChart();
+        
+        // Load correlation matrix
+        await loadCorrelationChart(dateRange);
+        
+        // Load goal progress
+        await loadGoalChart();
+        
+    } catch (error) {
+        console.error('Error loading charts:', error);
+    }
+}
+
+async function loadMainChart(dateRange, metricType) {
+    let endpoint, title, yaxis;
+    
+    switch(metricType) {
+        case 'blood':
+            endpoint = `/dashboard/api/blood-trend/`;
+            title = 'Blood Metrics Trends';
+            yaxis = 'Value';
+            break;
+        case 'vitals':
+            endpoint = `/dashboard/api/vital-trend/`;
+            title = 'Vital Signs Trends';
+            yaxis = 'Value';
+            break;
+        default:
+            endpoint = `/dashboard/api/health-metrics-trend/?metric_type=${metricType}`;
+            title = `${metricType.charAt(0).toUpperCase() + metricType.slice(1)} Trends`;
+            yaxis = 'Value';
+    }
+    
+    const response = await fetch(endpoint);
+    const data = await response.json();
+    
+    const traces = [];
+    const chartType = document.getElementById('chartType').value;
+    
+    if (metricType === 'blood') {
+        traces.push(
+            createTrace(data.dates, data.glucose, 'Glucose', 'blue'),
+            createTrace(data.dates, data.total_cholesterol, 'Total Cholesterol', 'red'),
+            createTrace(data.dates, data.ldl, 'LDL', 'orange'),
+            createTrace(data.dates, data.hdl, 'HDL', 'green')
+        );
+    } else if (metricType === 'vitals') {
+        traces.push(
+            createTrace(data.dates, data.systolic, 'Systolic BP', 'red'),
+            createTrace(data.dates, data.diastolic, 'Diastolic BP', 'blue'),
+            createTrace(data.dates, data.heart_rate, 'Heart Rate', 'green')
+        );
+    } else {
+        traces.push(createTrace(data.dates, data.values, metricType, 'blue'));
+    }
+    
+    const layout = {
+        title: title,
+        xaxis: { title: 'Date' },
+        yaxis: { title: yaxis },
+        responsive: true,
+        hovermode: 'x unified'
+    };
+    
+    Plotly.react('mainChart', traces, layout);
+}
+
+function createTrace(x, y, name, color) {
+    const chartType = document.getElementById('chartType').value;
+    
+    return {
+        x: x,
+        y: y,
+        name: name,
+        type: chartType === 'scatter' ? 'scatter' : chartType,
+        mode: chartType === 'scatter' ? 'markers' : 'lines',
+        line: { color: color },
+        marker: { color: color, size: chartType === 'scatter' ? 8 : 4 }
+    };
+}
+
+async function loadScoreChart() {
+    // Simulate health score distribution
+    const scores = [65, 70, 75, 80, 85, 90, 95];
+    const counts = [5, 8, 12, 15, 10, 6, 3];
+    
+    const trace = {
+        x: scores,
+        y: counts,
+        type: 'bar',
+        marker: { color: 'rgba(54, 162, 235, 0.8)' }
+    };
+    
+    const layout = {
+        title: 'Health Score Distribution',
+        xaxis: { title: 'Health Score' },
+        yaxis: { title: 'Frequency' },
+        responsive: true
+    };
+    
+    Plotly.react('scoreChart', [trace], layout);
+}
+
+async function loadCorrelationChart(dateRange) {
+    // Simulate correlation data
+    const metrics = ['Exercise', 'Sleep', 'Stress', 'BP', 'Weight'];
+    const correlation = [
+        [1.0, 0.6, -0.4, -0.3, -0.5],
+        [0.6, 1.0, -0.3, -0.2, -0.4],
+        [-0.4, -0.3, 1.0, 0.5, 0.3],
+        [-0.3, -0.2, 0.5, 1.0, 0.4],
+        [-0.5, -0.4, 0.3, 0.4, 1.0]
+    ];
+    
+    const trace = {
+        z: correlation,
+        x: metrics,
+        y: metrics,
+        type: 'heatmap',
+        colorscale: 'RdBu',
+        zmid: 0
+    };
+    
+    const layout = {
+        title: 'Health Metric Correlations',
+        responsive: true
+    };
+    
+    Plotly.react('correlationChart', [trace], layout);
+}
+
+async function loadGoalChart() {
+    // Load goal progress data
+    const response = await fetch('/api/goals/');
+    const goals = await response.json();
+    
+    const traces = goals.map(goal => ({
+        x: [0, goal.current_value / goal.target_value * 100],
+        y: [goal.name, goal.name],
+        type: 'bar',
+        orientation: 'h',
+        marker: {
+            color: goal.current_value >= goal.target_value ? 'green' : 'orange'
+        }
+    }));
+    
+    const layout = {
+        title: 'Goal Progress (%)',
+        xaxis: { title: 'Progress (%)', range: [0, 100] },
+        yaxis: { title: 'Goals' },
+        responsive: true,
+        showlegend: false
+    };
+    
+    Plotly.react('goalChart', traces, layout);
+}
+
+function updateMainChart() {
+    const metricType = document.getElementById('metricType').value;
+    const dateRange = document.getElementById('dateRange').value;
+    loadMainChart(dateRange, metricType);
+}
+</script>
+{% endblock %}

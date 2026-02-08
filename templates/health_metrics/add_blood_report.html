@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Blood Report - Health Forecast{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle"></i> Add Blood Report
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Report Date *</label>
+                                {{ form.date }}
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4 mb-3">Complete Blood Count (CBC)</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.hemoglobin_g_dl.id_for_label }}" class="form-label">Hemoglobin (g/dL)</label>
+                                {{ form.hemoglobin_g_dl }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.hematocrit_percent.id_for_label }}" class="form-label">Hematocrit (%)</label>
+                                {{ form.hematocrit_percent }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.wbc_k_ul.id_for_label }}" class="form-label">WBC (K/µL)</label>
+                                {{ form.wbc_k_ul }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.platelets_k_ul.id_for_label }}" class="form-label">Platelets (K/µL)</label>
+                                {{ form.platelets_k_ul }}
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4 mb-3">Metabolic Panel</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.glucose_mg_dl.id_for_label }}" class="form-label">Glucose (mg/dL)</label>
+                                {{ form.glucose_mg_dl }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.creatinine_mg_dl.id_for_label }}" class="form-label">Creatinine (mg/dL)</label>
+                                {{ form.creatinine_mg_dl }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.bun_mg_dl.id_for_label }}" class="form-label">BUN (mg/dL)</label>
+                                {{ form.bun_mg_dl }}
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4 mb-3">Lipid Panel</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.total_cholesterol_mg_dl.id_for_label }}" class="form-label">Total Cholesterol (mg/dL)</label>
+                                {{ form.total_cholesterol_mg_dl }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.ldl_cholesterol_mg_dl.id_for_label }}" class="form-label">LDL Cholesterol (mg/dL)</label>
+                                {{ form.ldl_cholesterol_mg_dl }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.hdl_cholesterol_mg_dl.id_for_label }}" class="form-label">HDL Cholesterol (mg/dL)</label>
+                                {{ form.hdl_cholesterol_mg_dl }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.triglycerides_mg_dl.id_for_label }}" class="form-label">Triglycerides (mg/dL)</label>
+                                {{ form.triglycerides_mg_dl }}
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4 mb-3">Liver Function</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.ast_u_l.id_for_label }}" class="form-label">AST (U/L)</label>
+                                {{ form.ast_u_l }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.alt_u_l.id_for_label }}" class="form-label">ALT (U/L)</label>
+                                {{ form.alt_u_l }}
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Blood Report
+                            </button>
+                            <a href="{% url 'health_metrics:blood_report_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

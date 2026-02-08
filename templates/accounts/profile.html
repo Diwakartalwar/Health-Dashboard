@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - Health Forecast{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> User Profile
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Account Information</h6>
+                            <p><strong>Username:</strong> {{ user.username }}</p>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name|default:"(Not set)" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>BMI Calculation</h6>
+                            {% if profile.bmi %}
+                            <p><strong>BMI:</strong> {{ profile.bmi|floatformat:1 }} kg/m²</p>
+                            <p>
+                                {% if profile.bmi < 18.5 %}
+                                <span class="badge bg-info">Underweight</span>
+                                {% elif profile.bmi < 25 %}
+                                <span class="badge bg-success">Normal</span>
+                                {% elif profile.bmi < 30 %}
+                                <span class="badge bg-warning">Overweight</span>
+                                {% else %}
+                                <span class="badge bg-danger">Obese</span>
+                                {% endif %}
+                            </p>
+                            {% else %}
+                            <p class="text-muted">BMI data not available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6>Update Profile Information</h6>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.age.id_for_label }}" class="form-label">Age</label>
+                                {{ form.age }}
+                                {% if form.age.errors %}<div class="invalid-feedback d-block">{{ form.age.errors }}</div>{% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.gender.id_for_label }}" class="form-label">Gender</label>
+                                {{ form.gender }}
+                                {% if form.gender.errors %}<div class="invalid-feedback d-block">{{ form.gender.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.height_cm.id_for_label }}" class="form-label">Height (cm)</label>
+                                {{ form.height_cm }}
+                                {% if form.height_cm.errors %}<div class="invalid-feedback d-block">{{ form.height_cm.errors }}</div>{% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.weight_kg.id_for_label }}" class="form-label">Weight (kg)</label>
+                                {{ form.weight_kg }}
+                                {% if form.weight_kg.errors %}<div class="invalid-feedback d-block">{{ form.weight_kg.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                        <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
